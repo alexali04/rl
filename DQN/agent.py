@@ -1,28 +1,25 @@
 import flappy_bird_gymnasium
 import gymnasium
 import torch
-import torch.nn as nn
+from dqn import DQN
 
-# DQN
-# DQN - MLP: state --> action - policy network dicates action to be taken
+"""
+It's always a good idea to:
+    - test RL agent code on a simple workspace first (i.e. CartPole)
 
-class DQN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        
-
-    def forward(self, x):
-        
-
-
+"""
 
 class Agent:
     def run(self, is_training=True, render=False):
 
-
-
         # env = gymnasium.make("FlappyBird-v0", render_mode="human" if render else None, use_lidar=False)
         env = gymnasium.make("CartPole-v1", render_mode="human" if render else None)
+        
+        num_states = env.observation_space.shape[0]
+        num_actions = env.action_space.n
+
+        policy_dqn = DQN(env.observation_space.shape[0], num_actions)
+
         obs, _ = env.reset()
         while True:
             # Next action:
@@ -37,3 +34,5 @@ class Agent:
                 break
 
         env.close()
+
+
