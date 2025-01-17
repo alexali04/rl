@@ -55,8 +55,7 @@ os.makedirs(RUNS_DIR, exist_ok=True)
 
 
 
-class Agent:
-
+class Agent():
     def __init__(self, hyperparameter_set):
         with open('hyperparameters.yml', 'r') as file:
             all_hyperparameter_sets = yaml.safe_load(file)
@@ -86,7 +85,7 @@ class Agent:
         self.GRAPH_FILE = os.path.join(RUNS_DIR, f'{self.hyperparameter_set}.png')
 
 
-    def run(self, is_training=True, render=False):
+    def run(self, is_training=True, render=False, make_rand=False):
         if is_training:
             start_time = datetime.now()
             last_graph_update_time = start_time
@@ -127,6 +126,10 @@ class Agent:
         else:
             policy_dqn.load_state_dict(torch.load(self.MODEL_FILE))
             policy_dqn.eval()
+        
+        if make_rand:
+            policy_dqn = DQN(num_states, num_actions, self.fc1_nodes).to(device)
+
 
         for episode in itertools.count():
             state, _ = env.reset()
@@ -134,7 +137,7 @@ class Agent:
             terminated = False
             episode_reward = 0.0
 
-            while (not terminated and episode_reward > self.stop_on_reward):
+            while (not terminated and episode_reward < self.stop_on_reward):
                 if is_training and random.random() < epsilon:
                     # random action if < epsilon
                     action = env.action_space.sample()
@@ -250,11 +253,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train or test model.')
     parser.add_argument('hyperparameters', help='')
     parser.add_argument('--train', help='Training mode', action='store_true')
+    parser.add_argument('--make_rand', help='Make random model', action='store_true')
     args = parser.parse_args()
 
     dql = Agent(hyperparameter_set=args.hyperparameters)
 
-    if args.train:
+    if args.make_rand:
+        dql.run(is_training=True, render=True, make_rand=True)
+
+    elif args.train:
         dql.run(is_training=True)
     else:
         dql.run(is_training=False, render=True)
